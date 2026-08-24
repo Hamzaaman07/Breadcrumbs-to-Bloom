@@ -120,7 +120,8 @@ export function CanvasRoot() {
   }, []);
 
   const debug = searchParams.get("debug") === "1";
-  const mode = reducedMotion ? "static" : pathname === "/" ? "scroll" : "autonomous";
+  const isHome = pathname === "/";
+  const mode = reducedMotion ? "static" : isHome ? "scroll" : "autonomous";
 
   useEffect(() => {
     if (mode === "static") {
@@ -134,7 +135,9 @@ export function CanvasRoot() {
     <div
       ref={wrapRef}
       aria-hidden="true"
-      className="pointer-events-none fixed inset-0 z-0"
+      // bg-cream here is the page's actual ground colour — body is
+      // transparent so the field shows through the content above.
+      className="pointer-events-none fixed inset-0 z-0 bg-cream"
     >
       <CanvasErrorBoundary onError={setUnsupported}>
         <Canvas
@@ -146,9 +149,17 @@ export function CanvasRoot() {
           <Suspense fallback={null}>
             <ambientLight intensity={0.6} />
             <CameraRig enableOrientation={tier.tier === "mobile"} />
-            <LightShaft />
-            <FlourHaze count={tier.hazeSprites} />
-            <DoughSurface displacement={tier.dohShaderDisplacement} />
+            {/* Spec §6: the hero is the ONLY place the full stack appears.
+                Inner pages get the particle field alone against cream —
+                otherwise the dough surface sits under their body copy and
+                wrecks contrast. */}
+            {isHome && (
+              <>
+                <LightShaft />
+                <FlourHaze count={tier.hazeSprites} />
+                <DoughSurface displacement={tier.dohShaderDisplacement} />
+              </>
+            )}
             <ParticleField
               stalkCount={tier.stalkCount}
               particlesPerStalk={tier.particlesPerStalk}

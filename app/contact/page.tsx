@@ -21,14 +21,14 @@ export default function ContactPage() {
           </p>
 
           <div className="mt-8 flex flex-col gap-3 font-body text-sm">
-            <a href={`mailto:${site.email}`} className="text-crust-deep hover:underline">
+            <a href={`mailto:${site.email}`} className="text-sage-deep hover:underline">
               {site.email}
             </a>
             <a
               href={site.instagramUrl}
               target="_blank"
               rel="noreferrer noopener"
-              className="text-crust-deep hover:underline"
+              className="text-sage-deep hover:underline"
             >
               {site.instagramHandle}
             </a>

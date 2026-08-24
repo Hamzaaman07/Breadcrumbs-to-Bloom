@@ -15,15 +15,18 @@ export function MeetMonica() {
           />
         </div>
 
-        <div className="order-2">
-          <p className="eyebrow scrim inline-block px-1">Our story</p>
-          <h2 className="scrim mt-2 inline-block px-1 font-display text-h2 font-bold text-olive-ink">
+        {/* This copy sits over the field exactly where Blooming resolves,
+            so the whole column gets one soft scrim rather than per-line
+            ones — the type itself is never lightened. */}
+        <div className="scrim-panel order-2">
+          <p className="eyebrow">Our story</p>
+          <h2 className="mt-2 font-display text-h2 font-bold text-olive-ink">
             From healing to handcrafted
           </h2>
 
           {/* Kept deliberately unadorned — no pull-quote styling, no
               decorative flourish. See NOTES.md / self-critique §14. */}
-          <p className="scrim mt-6 max-w-measure px-1 font-body text-body leading-relaxed text-olive/90">
+          <p className="mt-6 max-w-measure font-body text-body leading-relaxed text-olive">
             My sourdough journey began in one of the hardest seasons of my
             life, during treatment for Stage 3 colon cancer. Baking became my
             therapy, my way to heal, and a reminder that something beautiful
@@ -32,7 +35,7 @@ export function MeetMonica() {
 
           <Link
             href="/story"
-            className="scrim mt-6 inline-block px-1 font-body text-sm font-semibold text-crust-deep hover:underline"
+            className="mt-6 inline-block font-body text-sm font-semibold text-sage-deep hover:underline"
           >
             Read Monica&rsquo;s story →
           </Link>

@@ -6,7 +6,7 @@ export function FromTheBakery() {
   const posts = getInstagramPosts().slice(0, 6);
 
   return (
-    <section className="bg-cream-warm px-4 py-section md:px-8">
+    <section className="bg-cream-warm/65 px-4 py-section md:px-8">
       <div className="mx-auto max-w-site">
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
@@ -19,7 +19,7 @@ export function FromTheBakery() {
             href={site.instagramUrl}
             target="_blank"
             rel="noreferrer noopener"
-            className="font-body text-sm font-semibold text-crust-deep hover:underline"
+            className="font-body text-sm font-semibold text-sage-deep hover:underline"
           >
             Follow {site.instagramHandle} →
           </a>

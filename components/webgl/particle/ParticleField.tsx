@@ -1,6 +1,6 @@
 "use client";
 
-import { useFrame } from "@react-three/fiber";
+import { useFrame, useThree } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
 import { buildStalkField } from "./geometry";
@@ -23,10 +23,22 @@ const AUTONOMOUS_PERIOD = 26; // seconds for a full float->bloom->float loop
 export function ParticleField({ stalkCount, particlesPerStalk, mode }: Props) {
   const materialRef = useRef<THREE.ShaderMaterial>(null);
   const clockRef = useRef(0);
+  const debugRef = useRef(
+    typeof window !== "undefined" &&
+      new URLSearchParams(window.location.search).get("debug") === "1"
+  );
+
+  // World-space width the camera can actually see at the field's depth,
+  // bucketed so a resize only rebuilds the field on a real change.
+  const viewportWidth = useThree((s) => s.viewport.width);
+  const fieldWidth = useMemo(
+    () => Math.max(3, Math.round(viewportWidth * 1.3 * 2) / 2),
+    [viewportWidth]
+  );
 
   const field = useMemo(
-    () => buildStalkField(stalkCount, particlesPerStalk),
-    [stalkCount, particlesPerStalk]
+    () => buildStalkField(stalkCount, particlesPerStalk, fieldWidth),
+    [stalkCount, particlesPerStalk, fieldWidth]
   );
 
   const geometry = useMemo(() => {
@@ -52,14 +64,16 @@ export function ParticleField({ stalkCount, particlesPerStalk, mode }: Props) {
       uSettle: { value: 0 },
       uGrowth: { value: 0 },
       uBloom: { value: 0 },
-      uBaseSize: { value: 6.0 },
+      // World-space crumb size (see uProjScale in the vertex shader).
+      uBaseSize: { value: 0.042 },
       uPixelRatio: { value: typeof window !== "undefined" ? Math.min(window.devicePixelRatio, 2) : 1 },
+      uProjScale: { value: 1000 },
       uDriftBoost: { value: 1.0 },
     }),
     []
   );
 
-  useFrame((_, delta) => {
+  useFrame((state, delta) => {
     clockRef.current += delta;
 
     if (mode === "autonomous") {
@@ -80,7 +94,7 @@ export function ParticleField({ stalkCount, particlesPerStalk, mode }: Props) {
 
     if (mode !== "static") {
       tickDriftBoost(performance.now());
-      tickUniforms();
+      tickUniforms(delta);
     }
 
     if (materialRef.current) {
@@ -90,6 +104,18 @@ export function ParticleField({ stalkCount, particlesPerStalk, mode }: Props) {
       u.uGrowth.value = uniformCurrent.growth;
       u.uBloom.value = uniformCurrent.bloom;
       u.uDriftBoost.value = idleState.driftBoost;
+      const cam = state.camera as THREE.PerspectiveCamera;
+      u.uProjScale.value =
+        state.size.height / (2 * Math.tan((cam.fov * Math.PI) / 360));
+    }
+
+    // Read-only diagnostic, only with ?debug=1 — lets the live phase values
+    // be inspected in the console (and asserted by the screenshot harness)
+    // instead of eyeballing whether the field really returned to Floating.
+    if (debugRef.current) {
+      (window as unknown as { __bbUniforms?: unknown }).__bbUniforms = {
+        ...uniformCurrent,
+      };
     }
   });
 

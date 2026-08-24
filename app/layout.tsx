@@ -75,7 +75,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       lang="en"
       className={`${fraunces.variable} ${karla.variable} h-full antialiased`}
     >
-      <body className="relative flex min-h-full flex-col bg-cream text-olive">
+      {/* body is intentionally transparent: the fixed WebGL canvas at z-0
+          paints the cream ground, and sections above it use translucent
+          scrims so the particle field stays visible through the page. */}
+      <body className="relative flex min-h-full flex-col text-olive">
         <script
           type="application/ld+json"
           // eslint-disable-next-line react/no-danger
@@ -91,9 +94,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Suspense fallback={null}>
             <CanvasRoot />
           </Suspense>
-          <div className="relative z-10 flex min-h-full flex-col">
+          {/* Announcement bar and nav share one fixed stack so the bar
+              always sits above the nav instead of overlapping it. */}
+          <div className="fixed inset-x-0 top-0 z-40">
             <AnnouncementBar />
             <Nav />
+          </div>
+          <div className="relative z-10 flex min-h-full flex-col">
             <main id="main-content" className="flex-1">
               {children}
             </main>

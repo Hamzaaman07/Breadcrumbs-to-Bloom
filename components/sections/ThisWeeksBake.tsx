@@ -6,7 +6,7 @@ export function ThisWeeksBake() {
   const items = getFeaturedMenuItems(4);
 
   return (
-    <section className="bg-cream px-4 py-section md:px-8">
+    <section className="bg-cream/70 px-4 py-section md:px-8">
       <div className="mx-auto max-w-site">
         <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
           <div>
@@ -20,7 +20,7 @@ export function ThisWeeksBake() {
           </div>
           <Link
             href="/menu"
-            className="font-body text-sm font-semibold text-crust-deep hover:underline"
+            className="font-body text-sm font-semibold text-sage-deep hover:underline"
           >
             See the full menu →
           </Link>

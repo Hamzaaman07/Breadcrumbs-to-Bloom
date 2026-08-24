@@ -2,7 +2,7 @@ import { howItWorks } from "@/content/products";
 
 export function HowItWorks() {
   return (
-    <section className="bg-cream-warm px-4 py-section md:px-8">
+    <section className="bg-cream-warm/65 px-4 py-section md:px-8">
       <div className="mx-auto max-w-site">
         <p className="eyebrow">The process</p>
         <h2 className="mt-2 font-display text-h2 font-bold text-olive-ink">

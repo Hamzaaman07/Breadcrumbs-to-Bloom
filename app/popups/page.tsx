@@ -45,7 +45,7 @@ export default function PopupsPage() {
                     href={p.mapsUrl}
                     target="_blank"
                     rel="noreferrer noopener"
-                    className="mt-4 inline-block font-body text-sm font-semibold text-crust-deep hover:underline"
+                    className="mt-4 inline-block font-body text-sm font-semibold text-sage-deep hover:underline"
                   >
                     Get directions →
                   </a>

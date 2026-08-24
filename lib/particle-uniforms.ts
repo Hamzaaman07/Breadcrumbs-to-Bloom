@@ -11,6 +11,8 @@ export type UniformValues = {
   settle: number;
   growth: number;
   bloom: number;
+  /** Hero stack presence: 1 in the hero, 0 once past ~60vh (spec §6). */
+  heroFade: number;
 };
 
 export const uniformTargets: UniformValues = {
@@ -18,6 +20,7 @@ export const uniformTargets: UniformValues = {
   settle: 0,
   growth: 0,
   bloom: 0,
+  heroFade: 1,
 };
 
 export const uniformCurrent: UniformValues = {
@@ -25,6 +28,7 @@ export const uniformCurrent: UniformValues = {
   settle: 0,
   growth: 0,
   bloom: 0,
+  heroFade: 1,
 };
 
 function mapRange(
@@ -49,6 +53,11 @@ export function setTargetsFromProgress(progress: number) {
   uniformTargets.bloom = mapRange(progress, 0.78, 1.0, 0, 1);
 }
 
+/** Hero-stack presence, driven by its own short ScrollTrigger span. */
+export function setHeroFadeTarget(value: number) {
+  uniformTargets.heroFade = Math.min(1, Math.max(0, value));
+}
+
 export function setStaticTargets(settle: number, growth: number, bloom: number) {
   uniformTargets.scroll = 1;
   uniformTargets.settle = settle;
@@ -58,18 +67,43 @@ export function setStaticTargets(settle: number, growth: number, bloom: number) 
   uniformCurrent.settle = settle;
   uniformCurrent.growth = growth;
   uniformCurrent.bloom = bloom;
+  // Reduced motion / non-scroll routes keep the hero stack present, since
+  // there is no scroll handoff to fade it out.
+  uniformTargets.heroFade = 1;
+  uniformCurrent.heroFade = 1;
 }
 
-const MAX_STEP_PER_FRAME = 0.03;
-const DAMP = 0.08;
+// Both constants are per SECOND, not per frame. An earlier version damped
+// by a fixed fraction each frame with a fixed per-frame cap, which made the
+// whole transformation frame-rate dependent: on slow hardware the uniforms
+// simply never caught up with the scroll (measured: bloom stuck at 0.42
+// where it should have been 1.0, and the field never fully un-grew on the
+// way back up). Time-based smoothing converges in the same wall-clock time
+// on a 120fps desktop and a struggling phone alike.
 
-/** Called once per rendered frame (inside useFrame) — lerps current toward
- * target, capping the per-frame step so a flick-scroll or anchor jump can't
- * snap seed straight to bloom in a single frame. */
-export function tickUniforms() {
+/** Exponential smoothing rate — ~0.2s time constant. Growth lags the
+ * scroll, which is what gives it weight. */
+const SMOOTHING = 5;
+/** Hard ceiling on how fast a value may travel, in units per second, so a
+ * flick-scroll or anchor jump still cannot snap seed straight to bloom
+ * (a full 0->1 traversal can never take less than ~0.55s). */
+const MAX_RATE_PER_SEC = 1.8;
+
+/** Called once per rendered frame (inside useFrame) with the frame's
+ * delta in seconds. */
+export function tickUniforms(deltaSeconds: number) {
+  // Guard against tab-restore/debugger pauses producing a huge delta.
+  const dt = Math.min(0.1, Math.max(0.0001, deltaSeconds));
+  const rate = 1 - Math.exp(-SMOOTHING * dt);
+  const maxStep = MAX_RATE_PER_SEC * dt;
+
   (Object.keys(uniformCurrent) as (keyof UniformValues)[]).forEach((key) => {
-    const delta = uniformTargets[key] - uniformCurrent[key];
-    const step = Math.max(-MAX_STEP_PER_FRAME, Math.min(MAX_STEP_PER_FRAME, delta * DAMP));
+    const diff = uniformTargets[key] - uniformCurrent[key];
+    const step = Math.max(-maxStep, Math.min(maxStep, diff * rate));
     uniformCurrent[key] += step;
+    // Settle exactly, so values don't creep asymptotically forever.
+    if (Math.abs(uniformTargets[key] - uniformCurrent[key]) < 0.0005) {
+      uniformCurrent[key] = uniformTargets[key];
+    }
   });
 }

@@ -5,7 +5,7 @@ export function FindUsAroundTown() {
   const upcoming = getUpcomingPopups();
 
   return (
-    <section className="bg-cream px-4 py-section md:px-8">
+    <section className="bg-cream/70 px-4 py-section md:px-8">
       <div className="mx-auto max-w-site">
         <p className="eyebrow">In person</p>
         <h2 className="mt-2 font-display text-h2 font-bold text-olive-ink">
@@ -40,7 +40,7 @@ export function FindUsAroundTown() {
                   href={p.mapsUrl}
                   target="_blank"
                   rel="noreferrer noopener"
-                  className="mt-4 inline-block font-body text-sm font-semibold text-crust-deep hover:underline"
+                  className="mt-4 inline-block font-body text-sm font-semibold text-sage-deep hover:underline"
                 >
                   Get directions →
                 </a>

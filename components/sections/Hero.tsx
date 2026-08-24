@@ -38,7 +38,10 @@ export function Hero({ fallbackImage }: { fallbackImage: ReactNode }) {
           Jurupa Valley, California
         </motion.p>
 
-        <h1 className="mt-4 flex flex-wrap justify-center gap-x-4 font-display text-hero font-bold text-olive-ink md:justify-start">
+        {/* No scrim on the H1: heavy olive-ink display type on cream has
+            ample contrast on its own, and a scrim behind type this large
+            reads as a visible patch rather than an invisible aid. */}
+        <h1 className="mt-4 flex flex-wrap justify-center gap-x-3 font-display text-hero font-bold text-olive-ink md:justify-start">
           {words.map((word, i) => (
             <motion.span
               key={word}
@@ -46,7 +49,7 @@ export function Hero({ fallbackImage }: { fallbackImage: ReactNode }) {
               initial="hidden"
               animate="visible"
               variants={wordRise}
-              className="scrim inline-block px-1"
+              className="inline-block"
             >
               {word}
             </motion.span>
@@ -57,7 +60,7 @@ export function Hero({ fallbackImage }: { fallbackImage: ReactNode }) {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 2.0, duration: 0.6 }}
-          className="scrim mt-5 max-w-measure px-2 font-display text-2xl italic text-sage-deep"
+          className="mt-5 max-w-measure font-display text-2xl italic text-sage-deep"
         >
           Artisan sourdough, baked with intention.
         </motion.p>

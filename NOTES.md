@@ -115,6 +115,93 @@ than painted on.
   for this kind of imperative WebGL code, not accidental impurity; the rest
   of react-hooks (rules-of-hooks, exhaustive-deps) stays enabled.
 
+## Browser verification pass (and five real bugs it caught)
+Everything above was written from reading the code. Running the built site
+in headless Chromium (Playwright + SwiftShader) and actually looking at the
+screenshots found five things that code review had missed entirely — worth
+recording because four of them made the particle system, the whole reason
+the site exists, effectively invisible.
+
+1. **Sections painted over the canvas.** `body` had `bg-cream` and each
+   section an opaque `bg-cream` / `bg-cream-warm`; the fixed canvas sits at
+   z-0 *behind* all of it, so the field was only ever visible in the hero.
+   Fixed by making `body` transparent (the fixed canvas wrapper now carries
+   the cream ground) and giving mid-page sections translucent scrims
+   (cream at 65–70%, the dark pillar section at 65% with an open right
+   edge). NeverMissABake and the footer stay deliberately opaque for
+   rhythm.
+
+2. **The transformation was mistimed across the whole document.** The
+   ScrollTrigger ran `body` top→bottom, so Growing barely started by the
+   pillars section and Blooming only completed in the footer. It now spans
+   top-of-page → Meet Monica centred in the viewport (measured: scrollY
+   0→2601 at 1440×900), which puts Settling/Seeded in the hero, Growing
+   across the pillars, and Blooming resolving exactly on the cancer
+   sentence, per §9.5. Everything below Monica stays at full bloom.
+
+3. **The hero stack never handed off.** Layers 1/2/4 rendered at full
+   strength down the entire page, leaving mid-page sections muddy brown
+   and wrecking text contrast. Added a `heroFade` uniform on its own
+   short ScrollTrigger (0 by ~60vh) that the shaft (which also narrows),
+   the haze, and the dough (which also recedes in Z) all respect. The
+   hero layers are additionally not mounted at all outside `/` — on inner
+   pages the dough surface was sitting under the body copy.
+
+4. **Point size was ~240px.** A hard-coded `240.0` constant in the size
+   calculation, where a projection scale belonged, made every crumb a
+   screen-filling blob — the field read as milky haze rather than
+   particles. Now `uBaseSize` is a world size and `uProjScale`
+   (`height / 2·tan(fov/2)`) converts to pixels, so crumbs are ~4px and
+   depth-size correctly. Same fix applied to the flour haze.
+
+5. **The damping was frame-rate dependent, not time-based** — the most
+   consequential one, and invisible without instrumentation. `tickUniforms`
+   moved each value by a fixed fraction per *frame* with a fixed per-frame
+   cap. Under slow rendering it simply never caught up: measured live,
+   `bloom` peaked at **0.42** where it should have been 1.0 at Monica, and
+   scrolling back to the top left `settle` stuck at **0.55** instead of 0.
+   Rewritten as time-based exponential smoothing (`1 - exp(-5·dt)`) with a
+   per-second rate ceiling (1.8/s, so a full 0→1 still can't happen in
+   under ~0.55s — the anti-flick-scroll guarantee the spec asks for is
+   preserved). Verified live: the bands now read
+   0.000/0.610/1.000/0.546/1.000 going down and hit the *same* 0.546 at the
+   same scroll position coming back up, returning to 0.002/0/0 at the top.
+   That symmetry is the §14 reversibility check, measured rather than
+   asserted.
+
+Also corrected in the same pass: the announcement bar was overlapping the
+nav (they now share one fixed stack instead of the nav being
+independently `fixed top-0`); `--bloom` was being used as a UI heading
+colour in the pillars section (now `--sage-light`); the dough's scoring
+rang a near-white band *outside* each cut, making the scoring read as
+glowing outlines instead of incisions (now shaded as depth — dark valley,
+AO shoulder, flour caught pale *inside* the recess — with the plane's
+edges noise-masked so it's cropped by the viewport rather than pasted on
+as a hard diagonal wedge); the flour haze read as discrete milky discs
+(now far larger, far fainter, wide-gaussian, so it averages into
+atmosphere); the bloom fanned in x/z and so foreshortened to a flat
+horizontal smear from the front camera (now fans mostly screen-facing);
+Floating tied every particle to its own stalk's centroid, so the "free
+drifting crumbs" state was really ~90 tight clumps (float positions are
+now fully independent, which also gives Settling its actual job of
+*gathering* crumbs into discrete seed points); and the field had a fixed
+13-unit width against a mobile viewport that can only see ~2.3 units, so
+phones showed almost no field at all (width is now derived from the live
+viewport).
+
+### On `--crust` after the audit (§14)
+`--crust` is now confined to primary CTA fills (Order Now, Order This
+Week's Bake, Preorder on Hotplate, the two form submit buttons) and the
+keyboard skip-link, which is the visible focus affordance §13 asks for.
+Every secondary text link that had been using `--crust-deep` ("See the
+full menu →", "Get directions →", "Read Monica's story →", the contact
+email/Instagram links, menu price ranges, the nav hover) moved to
+`--sage-deep` or `--olive`. The one deliberate exception left is form
+**error** text, which stays `--crust-deep`: error states need a colour
+that reads as distinct from body copy and from sage, they're small and
+rare, and sage-deep would make a validation message look like ordinary
+text. Noting it explicitly rather than quietly leaving it.
+
 ## One thing removed (§14 self-critique)
 Originally planned a second, separate CSS canvas-simulated "bloom particle"
 layer behind the §9.9 "Never miss a bake" panel, per the spec's fallback

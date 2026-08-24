@@ -10,6 +10,7 @@ import { noiseGLSL } from "../particle/noiseGLSL";
 export const doughFragmentShader = /* glsl */ `
 uniform float uTime;
 uniform float uDisplacement; // 1 = full fermentation displacement, 0 = static
+uniform float uFade;
 uniform vec3 uCrust;
 uniform vec3 uCrustDeep;
 uniform vec3 uFlour;
@@ -72,21 +73,44 @@ void main() {
   vec3 crustColor = mix(uCrustDeep, uCrust, clamp(n * 0.7 + crackle * 0.3, 0.0, 1.0));
 
   float score = scoringField(vUv);
-  float cutMask = 1.0 - smoothstep(0.0, 0.018, score);
-  float flourRing = smoothstep(0.018, 0.03, score) * (1.0 - smoothstep(0.03, 0.06, score));
 
-  vec3 crumbColor = mix(uCrustDeep * 0.5, vec3(0.35, 0.2, 0.1), 0.4);
-  vec3 color = mix(crustColor, crumbColor, cutMask);
-  color = mix(color, uFlour, flourRing * 0.85);
+  // The score is CUT INTO the crust, so it is read as depth, never as a
+  // drawn line: inCut is how deep inside the incision this pixel is, and
+  // nearCut is the soft shadowed shoulder just outside it. Nothing here
+  // is ever brighter than the surrounding crust — an earlier version rang
+  // a near-white band OUTSIDE the cut, which made the scoring read as
+  // glowing outlines instead of valleys.
+  float inCut = smoothstep(0.004, -0.010, score);
+  float nearCut = 1.0 - smoothstep(0.0, 0.045, score);
 
-  // Overall flour dusting, heavier in valleys near the score lines.
-  float dust = fbm(vec3(crustUv * 6.0, 3.0)) * 0.15;
-  color = mix(color, uFlour, dust * (0.4 + flourRing));
+  vec3 crumbColor = mix(uCrustDeep * 0.42, vec3(0.30, 0.17, 0.09), 0.45);
+  vec3 color = mix(crustColor, crumbColor, inCut);
+
+  // Ambient occlusion on the shoulder of each cut.
+  color *= 1.0 - 0.28 * nearCut * (1.0 - inCut);
+
+  // Flour caught pale in the recesses — dimmed by the valley it sits in,
+  // so it lifts the crumb slightly without ever glowing.
+  float dust = fbm(vec3(crustUv * 6.0, 3.0));
+  color = mix(color, uFlour * 0.58, inCut * dust * 0.55);
+
+  // Light overall dusting across the crust.
+  color = mix(color, uFlour, dust * 0.10);
 
   float diffuse = clamp(dot(normalize(vNormal), normalize(uLightDir)), 0.0, 1.0);
-  vec3 lit = color * (0.55 + diffuse * 0.6);
+  // Lifted overall so the loaf reads as warm baked crust in morning light
+  // rather than a muddy brown mass.
+  vec3 lit = color * (0.86 + diffuse * 0.5);
 
-  gl_FragColor = vec4(lit, 1.0);
+  // Edge mask: the loaf is cropped generously by the viewport rather than
+  // pasted on as a hard-edged wedge, so its borders dissolve with a noisy
+  // falloff instead of a straight diagonal.
+  vec2 e = min(vUv, 1.0 - vUv);
+  float edge = smoothstep(0.0, 0.30, e.x) * smoothstep(0.0, 0.26, e.y);
+  float edgeNoise = fbm(vec3(vUv * 5.0, 7.0)) * 0.35 + 0.65;
+  float alpha = clamp(edge * edgeNoise, 0.0, 1.0) * uFade;
+
+  gl_FragColor = vec4(lit, alpha);
 }
 `;
 

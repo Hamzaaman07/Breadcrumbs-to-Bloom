@@ -69,7 +69,9 @@ export function Nav() {
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-40 transition-colors duration-300 ${
+      // Positioned by the fixed stack in layout.tsx (below the
+      // announcement bar), so this element itself is not fixed.
+      className={`relative transition-colors duration-300 ${
         solid ? "bg-sage/95 shadow-warm-sm backdrop-blur-sm" : "bg-transparent"
       }`}
     >
@@ -81,7 +83,7 @@ export function Nav() {
         <ul className="hidden items-center gap-7 font-body text-sm font-medium text-olive md:flex">
           {links.map((link) => (
             <li key={link.href}>
-              <Link href={link.href} className="transition-colors hover:text-crust">
+              <Link href={link.href} className="transition-colors hover:text-olive-ink">
                 {link.label}
               </Link>
             </li>

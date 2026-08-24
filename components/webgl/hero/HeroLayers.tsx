@@ -4,14 +4,19 @@ import { useFrame } from "@react-three/fiber";
 import { useMemo, useRef } from "react";
 import * as THREE from "three";
 import { doughFragmentShader, doughVertexShader } from "./doughShader";
+import { uniformCurrent } from "@/lib/particle-uniforms";
 
 // ---------------------------------------------------------------------
 // Layer 1 — Volumetric light: implemented as layered soft-edged additive
 // planes (the spec's explicit fallback) rather than a raymarched quad —
 // see NOTES.md / PLAN.md for why. Warm shaft raking from upper-left,
 // angle drifting on a ~40s period.
+//
+// All three hero layers below read uniformCurrent.heroFade every frame and
+// fade themselves out with it, so that by ~60vh of scroll the page is
+// handed to the particle field alone against cream (spec §6).
 // ---------------------------------------------------------------------
-export function LightShaft({ intensity = 1 }: { intensity?: number }) {
+export function LightShaft() {
   const group = useRef<THREE.Group>(null);
 
   const planes = useMemo(
@@ -23,11 +28,20 @@ export function LightShaft({ intensity = 1 }: { intensity?: number }) {
     []
   );
 
+  const materials = useRef<THREE.ShaderMaterial[]>([]);
+
   useFrame(({ clock }) => {
+    const fade = uniformCurrent.heroFade;
     if (group.current) {
       const drift = Math.sin(clock.elapsedTime * ((Math.PI * 2) / 40)) * 0.08;
       group.current.rotation.z = -0.55 + drift;
+      // The shaft narrows as it recedes, rather than only dimming.
+      group.current.scale.x = 0.35 + 0.65 * fade;
+      group.current.visible = fade > 0.01;
     }
+    materials.current.forEach((mat, i) => {
+      if (mat) mat.uniforms.uOpacity.value = planes[i].opacity * fade;
+    });
   });
 
   return (
@@ -36,11 +50,14 @@ export function LightShaft({ intensity = 1 }: { intensity?: number }) {
         <mesh key={i} position={[0, 0, p.z]}>
           <planeGeometry args={[p.width, p.height]} />
           <shaderMaterial
+            ref={(m) => {
+              if (m) materials.current[i] = m;
+            }}
             transparent
             depthWrite={false}
             blending={THREE.AdditiveBlending}
             uniforms={{
-              uOpacity: { value: p.opacity * intensity },
+              uOpacity: { value: p.opacity },
               uColorA: { value: new THREE.Color("#FAF8F2") },
               uColorB: { value: new THREE.Color("#BDD0A8") },
             }}
@@ -72,20 +89,27 @@ export function LightShaft({ intensity = 1 }: { intensity?: number }) {
 }
 
 // ---------------------------------------------------------------------
-// Layer 2 — Flour haze: large, soft, low-opacity billboarded points at
-// varying depths, additive, slow turbulent drift.
+// Layer 2 — Flour haze: many large, very soft, very low-opacity
+// billboarded sprites at varying depths. Atmosphere, not confetti — and
+// deliberately not "floating orbs" (§2): per-sprite alpha is kept low
+// enough that no individual sprite reads as an object, and the additive
+// stack settles into a haze rather than blowing out to milky blobs.
 // ---------------------------------------------------------------------
 export function FlourHaze({ count }: { count: number }) {
-  const pointsRef = useRef<THREE.Points>(null);
-
   const { positions, seeds } = useMemo(() => {
     const positions = new Float32Array(count * 3);
     const seeds = new Float32Array(count);
+    // Deterministic PRNG so the haze is identical between renders.
+    let s = 20260824;
+    const rand = () => {
+      s = (s * 1664525 + 1013904223) % 4294967296;
+      return s / 4294967296;
+    };
     for (let i = 0; i < count; i++) {
-      positions[i * 3 + 0] = (Math.random() - 0.5) * 14;
-      positions[i * 3 + 1] = (Math.random() - 0.5) * 9;
-      positions[i * 3 + 2] = (Math.random() - 0.5) * 6 - 1;
-      seeds[i] = Math.random() * 100;
+      positions[i * 3 + 0] = (rand() - 0.5) * 16;
+      positions[i * 3 + 1] = (rand() - 0.5) * 10;
+      positions[i * 3 + 2] = (rand() - 0.5) * 7 - 1;
+      seeds[i] = rand() * 100;
     }
     return { positions, seeds };
   }, [count]);
@@ -93,17 +117,22 @@ export function FlourHaze({ count }: { count: number }) {
   const uniforms = useMemo(
     () => ({
       uTime: { value: 0 },
-      uPixelRatio: { value: typeof window !== "undefined" ? Math.min(window.devicePixelRatio, 2) : 1 },
+      uFade: { value: 1 },
+      uProjScale: { value: 1000 },
     }),
     []
   );
 
-  useFrame(({ clock }) => {
+  useFrame(({ clock, size, camera }) => {
     uniforms.uTime.value = clock.elapsedTime;
+    uniforms.uFade.value = uniformCurrent.heroFade;
+    const persp = camera as THREE.PerspectiveCamera;
+    uniforms.uProjScale.value =
+      size.height / (2 * Math.tan((persp.fov * Math.PI) / 360));
   });
 
   return (
-    <points ref={pointsRef} frustumCulled={false}>
+    <points frustumCulled={false}>
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" args={[positions, 3]} />
         <bufferAttribute attach="attributes-aSeed" args={[seeds, 1]} />
@@ -116,7 +145,8 @@ export function FlourHaze({ count }: { count: number }) {
         vertexShader={`
           attribute float aSeed;
           uniform float uTime;
-          uniform float uPixelRatio;
+          uniform float uFade;
+          uniform float uProjScale;
           varying float vAlpha;
           void main() {
             vec3 pos = position;
@@ -124,8 +154,14 @@ export function FlourHaze({ count }: { count: number }) {
             pos.y += cos(uTime * 0.04 + aSeed * 1.3) * 0.3;
             vec4 mv = modelViewMatrix * vec4(pos, 1.0);
             gl_Position = projectionMatrix * mv;
-            gl_PointSize = (90.0 + aSeed) * uPixelRatio * (12.0 / -mv.z);
-            vAlpha = 0.06 + 0.09 * fract(aSeed * 0.37);
+            // Deliberately large and heavily overlapping: many big, very
+            // faint gaussians average into smooth atmosphere, whereas
+            // smaller/denser sprites read as discrete discs ("orbs", §2).
+            float worldSize = 0.9 + 1.1 * fract(aSeed * 0.271);
+            gl_PointSize = worldSize * uProjScale / -mv.z;
+            // Opacity ceiling ~0.15 is the *stack* budget, so each sprite
+            // sits an order of magnitude below it.
+            vAlpha = (0.005 + 0.009 * fract(aSeed * 0.37)) * uFade;
           }
         `}
         fragmentShader={`
@@ -133,8 +169,12 @@ export function FlourHaze({ count }: { count: number }) {
           void main() {
             vec2 uv = gl_PointCoord - 0.5;
             float d = length(uv);
-            float soft = smoothstep(0.5, 0.0, d);
-            gl_FragColor = vec4(vec3(0.98, 0.97, 0.94), soft * vAlpha);
+            if (d > 0.5) discard;
+            // Wide gaussian falloff — no rim at all, so nothing reads as a disc.
+            float soft = exp(-d * d * 14.0) * smoothstep(0.5, 0.34, d);
+            float a = soft * vAlpha;
+            if (a < 0.002) discard;
+            gl_FragColor = vec4(vec3(0.98, 0.97, 0.94), a);
           }
         `}
       />
@@ -143,16 +183,17 @@ export function FlourHaze({ count }: { count: number }) {
 }
 
 // ---------------------------------------------------------------------
-// Layer 4 — The dough surface: subdivided plane, lower-right third,
-// custom fbm crust shader + the corrected scoring SDF.
+// Layer 4 — The dough surface: subdivided plane in the lower-right third,
+// custom fbm crust shader + the scoring SDF, masked at its edges so it is
+// cropped by the viewport as a texture and a presence rather than pasted
+// on as a hard-edged wedge (spec §6).
 // ---------------------------------------------------------------------
 export function DoughSurface({ displacement }: { displacement: boolean }) {
-  const materialRef = useRef<THREE.ShaderMaterial>(null);
-
   const uniforms = useMemo(
     () => ({
       uTime: { value: 0 },
       uDisplacement: { value: displacement ? 1 : 0 },
+      uFade: { value: 1 },
       uCrust: { value: new THREE.Color("#B5742F") },
       uCrustDeep: { value: new THREE.Color("#8A5320") },
       uFlour: { value: new THREE.Color("#FAF8F2") },
@@ -161,18 +202,28 @@ export function DoughSurface({ displacement }: { displacement: boolean }) {
     [displacement]
   );
 
+  const meshRef = useRef<THREE.Mesh>(null);
+
   useFrame(({ clock }) => {
     uniforms.uTime.value = clock.elapsedTime;
+    const fade = uniformCurrent.heroFade;
+    uniforms.uFade.value = fade;
+    if (meshRef.current) {
+      // Recedes as it dims, rather than only fading in place.
+      meshRef.current.position.z = -1.5 - (1 - fade) * 2.5;
+      meshRef.current.visible = fade > 0.01;
+    }
   });
 
   return (
-    <mesh position={[3.4, -3.6, -1.5]} rotation={[-0.15, -0.5, 0.12]}>
-      <planeGeometry args={[7, 6, 64, 64]} />
+    <mesh ref={meshRef} position={[3.4, -3.6, -1.5]} rotation={[-0.15, -0.5, 0.12]}>
+      <planeGeometry args={[9, 8, 64, 64]} />
       <shaderMaterial
-        ref={materialRef}
         uniforms={uniforms}
         vertexShader={doughVertexShader}
         fragmentShader={doughFragmentShader}
+        transparent
+        depthWrite={false}
       />
     </mesh>
   );

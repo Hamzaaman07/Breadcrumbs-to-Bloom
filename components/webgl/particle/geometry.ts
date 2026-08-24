@@ -40,6 +40,11 @@ function groundY(x: number, z: number) {
 export function buildStalkField(
   stalkCount: number,
   particlesPerStalk: number,
+  /** World-space width to spread the field across. Passed in from the
+   * live viewport so the same stalk count fills a 375px phone and a
+   * 1440px desktop at comparable density — a fixed width left mobile
+   * showing only ~18% of the field. */
+  fieldWidth: number,
   seed = 1337
 ): StalkFieldData {
   const rand = mulberry32(seed);
@@ -56,9 +61,9 @@ export function buildStalkField(
   const aPetalAngle = new Float32Array(count);
   const aBend = new Float32Array(count * 2);
 
-  // Field footprint: wide-ish, shallow in Z (depth), centered slightly
-  // right/low so it reads well behind left-aligned hero copy on desktop.
-  const FIELD_WIDTH = 13;
+  // Field footprint: as wide as the viewport can see (plus a margin so
+  // stalks run off both edges), shallow in Z.
+  const FIELD_WIDTH = fieldWidth;
   const FIELD_DEPTH = 5;
 
   for (let s = 0; s < stalkCount; s++) {
@@ -78,11 +83,6 @@ export function buildStalkField(
     const bendX = (rand() - 0.5) * 0.5;
     const bendZ = (rand() - 0.5) * 0.3;
 
-    // Float centroid: scattered through a lit volume above/around the field.
-    const floatCx = sx + (rand() - 0.5) * 1.5;
-    const floatCy = 1.0 + rand() * 3.2;
-    const floatCz = sz + (rand() - 0.5) * 2.0;
-
     for (let p = 0; p < particlesPerStalk; p++) {
       const idx = s * particlesPerStalk + p;
       const along = particlesPerStalk === 1 ? 0 : p / (particlesPerStalk - 1);
@@ -99,9 +99,14 @@ export function buildStalkField(
       aSeedPos[idx * 3 + 1] = sy;
       aSeedPos[idx * 3 + 2] = sz;
 
-      aFloatPos[idx * 3 + 0] = floatCx + (rand() - 0.5) * 0.6;
-      aFloatPos[idx * 3 + 1] = floatCy + (rand() - 0.5) * 0.8;
-      aFloatPos[idx * 3 + 2] = floatCz + (rand() - 0.5) * 0.6;
+      // Float position is INDEPENDENT of the particle's stalk: in the
+      // Floating state crumbs are untethered, drifting freely through the
+      // lit volume (§5.3). Tying them to their stalk's centroid made the
+      // field read as ~90 tight clumps, and it also robbed Settling of its
+      // whole point — free crumbs gathering into discrete seed points.
+      aFloatPos[idx * 3 + 0] = (rand() - 0.5) * FIELD_WIDTH;
+      aFloatPos[idx * 3 + 1] = -1.2 + rand() * 4.4;
+      aFloatPos[idx * 3 + 2] = (rand() - 0.5) * FIELD_DEPTH - 0.5;
 
       aJitter[idx * 3 + 0] = rand();
       aJitter[idx * 3 + 1] = rand();

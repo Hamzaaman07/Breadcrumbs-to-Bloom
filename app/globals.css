@@ -54,7 +54,9 @@ body {
   max-width: 62ch;
 }
 
-/* Warm text scrim helper for content over the canvas */
+/* Warm text scrim helper for content over the canvas.
+   Spec §13: where text over the field loses contrast, put a scrim behind
+   it — never lighten the type. */
 .scrim {
   position: relative;
 }
@@ -64,11 +66,30 @@ body {
   inset: -0.5em -0.75em;
   background: radial-gradient(
     ellipse at center,
-    rgba(245, 243, 234, 0.72) 0%,
-    rgba(245, 243, 234, 0) 75%
+    rgba(245, 243, 234, 0.88) 0%,
+    rgba(245, 243, 234, 0.7) 55%,
+    rgba(245, 243, 234, 0) 80%
   );
   z-index: -1;
   border-radius: 12px;
+}
+
+/* Block-level scrim for a whole column of copy sitting over the field. */
+.scrim-panel {
+  position: relative;
+}
+.scrim-panel::before {
+  content: "";
+  position: absolute;
+  inset: -1.75rem -2rem;
+  background: radial-gradient(
+    120% 100% at 40% 50%,
+    rgba(245, 243, 234, 0.92) 0%,
+    rgba(245, 243, 234, 0.82) 45%,
+    rgba(245, 243, 234, 0) 100%
+  );
+  z-index: -1;
+  border-radius: 20px;
 }
 
 @media (prefers-reduced-motion: reduce) {

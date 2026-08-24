@@ -7,18 +7,23 @@ export function BreadWorthWaiting({ images }: { images: ReactNode[] }) {
   const [active, setActive] = useState(0);
 
   return (
-    <section className="relative overflow-hidden bg-olive-ink px-4 py-section md:px-8">
+    // Deliberately translucent rather than a solid dark block: this is the
+    // section the field crosses mid-Growing (§9.4), so the pinned macro
+    // imagery and its scrim both let the wheat-gold stalks read through.
+    <section className="relative overflow-hidden bg-olive-ink/65 px-4 py-section md:px-8">
       <div className="absolute inset-0">
         {pillars.map((p, i) => (
           <div
             key={p.slug}
             className="absolute inset-0 transition-opacity duration-700 ease-soft"
-            style={{ opacity: active === i ? 1 : 0 }}
+            style={{ opacity: active === i ? 0.4 : 0 }}
           >
             {images[i]}
           </div>
         ))}
-        <div className="absolute inset-0 bg-gradient-to-r from-olive-ink via-olive-ink/85 to-olive-ink/20" />
+        {/* Dark where the copy sits, open on the right so the growing
+            field reads through — legibility first, per §13. */}
+        <div className="absolute inset-0 bg-gradient-to-r from-olive-ink/95 via-olive-ink/60 to-transparent" />
       </div>
 
       <div className="relative mx-auto max-w-site">
@@ -42,13 +47,13 @@ export function BreadWorthWaiting({ images }: { images: ReactNode[] }) {
             >
               <h3
                 className={`font-display text-h3 font-semibold transition-colors ${
-                  i === active ? "text-bloom" : "text-cream-warm"
+                  i === active ? "text-sage-light" : "text-cream-warm/70"
                 }`}
               >
                 {p.title}
               </h3>
               <p
-                className={`mt-2 max-w-md font-body text-sm text-cream/75 transition-all duration-300 ${
+                className={`mt-2 max-w-md font-body text-sm text-cream/90 transition-all duration-300 ${
                   i === active ? "max-h-24 opacity-100" : "max-h-0 overflow-hidden opacity-0 md:max-h-24 md:opacity-100"
                 }`}
               >

@@ -77,7 +77,7 @@ export default function MenuPage() {
                         </span>
                       )}
                     </div>
-                    <p className="mt-2 font-body text-sm font-semibold text-crust-deep">
+                    <p className="mt-2 font-body text-sm font-semibold text-olive">
                       {item.priceRange}
                     </p>
                   </div>

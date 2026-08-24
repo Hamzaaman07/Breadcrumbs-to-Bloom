@@ -18,6 +18,7 @@ uniform float uGrowth; // 0..1 seeded -> grown
 uniform float uBloom;  // 0..1 grown -> bloomed
 uniform float uBaseSize;
 uniform float uPixelRatio;
+uniform float uProjScale;
 uniform float uDriftBoost; // idle drift amplitude boost after 6s untouched
 
 varying vec3 vColor;
@@ -73,8 +74,8 @@ void main() {
   // ---- Growing: fixed position along the stalk's bezier curve, gated by
   // an emergence front so the un-grown part does not exist yet. ----
   vec3 p0 = aSeedPos;
-  vec3 p2 = aSeedPos + vec3(aBend.x * 0.6, aStalkHeight * 1.6, aBend.y * 0.6);
-  vec3 p1 = aSeedPos + vec3(aBend.x * 1.1, aStalkHeight * 0.8, aBend.y * 1.1);
+  vec3 p2 = aSeedPos + vec3(aBend.x * 0.6, aStalkHeight * 2.3, aBend.y * 0.6);
+  vec3 p1 = aSeedPos + vec3(aBend.x * 1.1, aStalkHeight * 1.15, aBend.y * 1.1);
   vec3 grownPos = bezier(p0, p1, p2, aAlong);
 
   // Wind: low-freq noise, weighted by aAlong^2 so tips sway, bases planted.
@@ -92,12 +93,20 @@ void main() {
   grownPos += kernelOffset;
 
   // ---- Blooming: heads fan out radially around the tip. ----
+  // The fan is mostly screen-facing (x/y) with a little depth, so from the
+  // front camera it opens as a flower head. Fanning purely in x/z (an
+  // earlier version) foreshortened to a flat horizontal smear.
   vec3 tip = p2;
   float toTip = clamp((aAlong - 0.78) / 0.22, 0.0, 1.0);
-  vec3 petalDir = vec3(cos(aPetalAngle), 0.0, sin(aPetalAngle));
-  float petalR = 0.32 * toTip * uBloom;
+  vec3 petalDir = vec3(
+    cos(aPetalAngle),
+    sin(aPetalAngle) * 0.8,
+    sin(aPetalAngle) * 0.35
+  );
+  float petalR = 0.30 * toTip * uBloom * (0.7 + aJitter.x * 0.6);
   vec3 bloomOffset = petalDir * petalR;
-  bloomOffset.y -= abs(sin(aPetalAngle * 1.7)) * 0.12 * uBloom * toTip;
+  // Slight droop so the head reads as a heavy opened bloom, not a ring.
+  bloomOffset.y -= abs(cos(aPetalAngle)) * 0.05 * uBloom * toTip;
   vec3 bloomedPos = mix(grownPos, tip + petalDir * 0.05 + bloomOffset, uBloom * aIsHead);
 
   // ---- Compose final position across the whole lifecycle ----
@@ -120,9 +129,13 @@ void main() {
   // growth starts, near/far depth sizing. ----
   float preGrowthVisible = 1.0 - smoothstep(0.0, 0.03, uGrowth);
   float sizeGate = max(preGrowthVisible, emerged);
-  float depthSize = uBaseSize * (240.0 / -mvPosition.z);
+  // uBaseSize is a WORLD size; uProjScale converts it to pixels for this
+  // viewport/fov. (A previous hard-coded 240.0 constant here produced
+  // ~240px points, which is why the field read as milky blobs instead of
+  // crumbs.)
+  float depthSize = uBaseSize * (uProjScale / -mvPosition.z);
   float headBoost = 1.0 + aIsHead * 0.6 * (0.4 + uBloom);
-  gl_PointSize = depthSize * uPixelRatio * sizeGate * headBoost * (0.7 + aJitter.y * 0.6);
+  gl_PointSize = max(1.0, depthSize * uPixelRatio * sizeGate * headBoost * (0.7 + aJitter.y * 0.6));
 
   // ---- Color ramp ----
   vec3 colFloat = vec3(0.961, 0.953, 0.914);
