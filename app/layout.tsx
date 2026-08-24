@@ -81,6 +81,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           // eslint-disable-next-line react/no-danger
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-btn focus:bg-crust focus:px-4 focus:py-2 focus:text-cream-warm"
+        >
+          Skip to content
+        </a>
         <WebGLSupportProvider>
           <Suspense fallback={null}>
             <CanvasRoot />
@@ -88,7 +94,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="relative z-10 flex min-h-full flex-col">
             <AnnouncementBar />
             <Nav />
-            <main className="flex-1">{children}</main>
+            <main id="main-content" className="flex-1">
+              {children}
+            </main>
             <Footer />
           </div>
         </WebGLSupportProvider>
