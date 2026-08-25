@@ -31,15 +31,14 @@ kit beyond what's already in her kitchen.
 
 | Slot | Dimensions | Ratio | Direction |
 |---|---|---|---|
+| `menu-jalapeno-queso-loaf` | 1600×1200 | 4:3 | **Featured — already exists on the Square storefront.** Whole loaf on a wooden board, leaf scoring and jalapeño/cheese visible. Re-save the original from Square rather than re-shooting. |
+| `menu-chocolate-chip-cookies` | 1600×1200 | 4:3 | **Featured — already exists on the Square storefront.** Cookies clustered close, chocolate visible. |
+| `menu-banana-nut-muffins` | 1600×1200 | 4:3 | **Featured — already exists on the Square storefront.** Muffins in tulip liners in the tin, pecans on top, shot from above. |
+| `menu-oatmeal-raisin-cookies` | 1600×1200 | 4:3 | **Featured — already exists on the Square storefront.** Stacked cookies on a wooden board, oats and raisins visible. |
+| `menu-sourdough-granola` | 1600×1200 | 4:3 | **Already exists on the Square storefront.** Granola in a glass jar over yogurt, berries on top. |
 | `menu-country-sourdough` | 1600×1200 | 4:3 | Whole scored loaf on a cutting board, sage linen underneath, natural window light. |
-| `menu-jalapeno-cheddar` | 1600×1200 | 4:3 | Sliced open to show cheddar pockets and jalapeño flecks, on the same linen/board setup. |
-| `menu-cinnamon-raisin` | 1600×1200 | 4:3 | Sliced to show the cinnamon swirl, natural light, minimal props. |
 | `menu-everything-bagels` | 1600×1200 | 4:3 | Bagels in a woven tray or basket, heavy seed coverage visible. |
 | `menu-plain-bagels` | 1600×1200 | 4:3 | Same tray/basket setup, plain bagels stacked or fanned. |
-| `menu-chocolate-chip-cookies` | 1600×1200 | 4:3 | Cookies cooling on a rack or board, flaky salt visible on top. |
-| `menu-snickerdoodles` | 1600×1200 | 4:3 | Cinnamon-sugar coating visible in close, warm light. |
-| `menu-blueberry-muffins` | 1600×1200 | 4:3 | Muffins in paper liners, streusel top visible, one broken open optional. |
-| `menu-maple-pecan-granola` | 1600×1200 | 4:3 | Granola clusters in a bowl or jar, pecans visible, natural light. |
 | `menu-harvest-fig-loaf` | 1600×1200 | 4:3 | Sliced to show fig and walnut pieces, cozier/warmer light for the seasonal feel. |
 
 ## Bread Worth Waiting For pillars (`content/products.ts` → `imageSlot`)
