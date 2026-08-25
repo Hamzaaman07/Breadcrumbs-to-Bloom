@@ -1,6 +1,5 @@
 import Image from "next/image";
-import fs from "node:fs";
-import path from "node:path";
+import { imageManifest } from "@/lib/image-manifest";
 
 /**
  * Wraps next/image with a warm, on-brand placeholder for any slot that
@@ -12,11 +11,13 @@ import path from "node:path";
  * and it's used automatically — no code change needed. See ASSETS.md for
  * the full shot list.
  *
- * This is a server component (no client JS, no runtime fetch) — the
- * filesystem check happens once at render time on the server, so there's
- * no placeholder-then-real flash and it works whether the parent tree is
- * a server or client component (pass it down as children/props into a
- * "use client" parent rather than importing it there directly).
+ * Which slots have real files is resolved at BUILD time, by
+ * scripts/generate-image-manifest.mjs (wired to `prebuild`), not by
+ * touching the filesystem at render time. That matters: this used to call
+ * node:fs, which works on a Node server but silently returns nothing on
+ * filesystem-less runtimes (Cloudflare Workers, edge) — so every real photo
+ * would quietly render as a placeholder in production. A plain object
+ * lookup behaves the same everywhere.
  */
 
 type Props = {
@@ -29,8 +30,6 @@ type Props = {
   tone?: "sage" | "crust" | "cream";
 };
 
-const EXTENSIONS = ["jpg", "jpeg", "png", "webp"];
-
 function hashSlot(slot: string) {
   let h = 0;
   for (let i = 0; i < slot.length; i++) {
@@ -40,18 +39,7 @@ function hashSlot(slot: string) {
 }
 
 function findRealAsset(slot: string): string | null {
-  try {
-    const imagesDir = path.join(process.cwd(), "public", "images");
-    for (const ext of EXTENSIONS) {
-      const filePath = path.join(imagesDir, `${slot}.${ext}`);
-      if (fs.existsSync(filePath)) {
-        return `/images/${slot}.${ext}`;
-      }
-    }
-  } catch {
-    // fs unavailable (e.g. edge runtime) — fall through to placeholder
-  }
-  return null;
+  return imageManifest[slot] ?? null;
 }
 
 export function BakeryImage({
