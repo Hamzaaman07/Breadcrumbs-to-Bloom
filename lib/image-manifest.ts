@@ -5,6 +5,7 @@
 export const imageManifest: Record<string, string> = {
   "hero-fallback-loaf": "/images/hero-fallback-loaf.jpg",
   "menu-banana-nut-muffins": "/images/menu-banana-nut-muffins.jpg",
+  "menu-chocolate-chip-cookies": "/images/menu-chocolate-chip-cookies.jpg",
   "menu-jalapeno-queso-loaf": "/images/menu-jalapeno-queso-loaf.jpg",
   "menu-oatmeal-raisin-cookies": "/images/menu-oatmeal-raisin-cookies.jpg"
 };

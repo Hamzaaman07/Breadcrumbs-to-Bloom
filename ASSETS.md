@@ -32,7 +32,7 @@ kit beyond what's already in her kitchen.
 | Slot | Dimensions | Ratio | Direction |
 |---|---|---|---|
 | `menu-jalapeno-queso-loaf` | 1600×1200 | 4:3 | **✅ DELIVERED.** **Featured — already exists on the Square storefront.** Whole loaf on a wooden board, leaf scoring and jalapeño/cheese visible. Re-save the original from Square rather than re-shooting. |
-| `menu-chocolate-chip-cookies` | 1600×1200 | 4:3 | **Featured — already exists on the Square storefront.** Cookies clustered close, chocolate visible. |
+| `menu-chocolate-chip-cookies` | 1600×1200 | 4:3 | **✅ DELIVERED.** **Featured — already exists on the Square storefront.** Cookies clustered close, chocolate visible. |
 | `menu-banana-nut-muffins` | 1600×1200 | 4:3 | **✅ DELIVERED.** **Featured — already exists on the Square storefront.** Muffins in tulip liners in the tin, pecans on top, shot from above. |
 | `menu-oatmeal-raisin-cookies` | 1600×1200 | 4:3 | **✅ DELIVERED.** **Featured — already exists on the Square storefront.** Stacked cookies on a wooden board, oats and raisins visible. |
 | `menu-sourdough-granola` | 1600×1200 | 4:3 | **Already exists on the Square storefront.** Granola in a glass jar over yogurt, berries on top. |
@@ -64,10 +64,10 @@ kit beyond what's already in her kitchen.
 |---|---|---|---|
 | `instagram-1` through `instagram-6` | 1080×1080 | 1:1 | Real Instagram-style square crops — bakes, process shots, market setup, pickup boxes. Pull directly from @breadcrumbs_to_blooms once the feed is live, matching whatever six posts are freshest. |
 
-## Still needed for This Week's Bake
+## This Week's Bake — complete
 
-Only one featured card is still on a placeholder: **`menu-chocolate-chip-cookies`**.
-Everything else in that row is real. Send that one photo and the section is complete.
+All four featured cards now use Monica's real photography. The remaining
+placeholder slots are the pillar, story and Instagram shots below.
 
 ## Notes for whoever is sourcing these
 
