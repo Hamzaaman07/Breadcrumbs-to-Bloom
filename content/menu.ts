@@ -38,7 +38,67 @@ export const seasonalCollection = {
     "Small-batch flavors baked while the season lasts. Once they're gone, they're gone until next year.",
 };
 
+// ---------------------------------------------------------------------------
+// The four `featured: true` items below are the real products and prices taken
+// from Monica's Square storefront, and they are what "This Week's Bake" shows
+// on the homepage. Their photos come from her own storefront listings — save
+// each one into /public/images/ using the exact `imageSlot` name as the
+// filename (e.g. menu-jalapeno-queso-loaf.jpg) and it replaces the placeholder
+// automatically. See ASSETS.md.
+//
+// Items further down marked PLACEHOLDER are stand-ins written during the build
+// so the /menu page has every category populated — swap their names, prices and
+// descriptions for real products before launch.
+// ---------------------------------------------------------------------------
+
 export const menuItems: MenuItem[] = [
+  {
+    slug: "jalapeno-queso-loaf",
+    name: "Jalapeno Queso Loaf",
+    category: "Loaves",
+    description:
+      "Fresh jalapeño and queso baked all the way through a long-fermented loaf.",
+    priceRange: "$16",
+    imageSlot: "menu-jalapeno-queso-loaf",
+    featured: true,
+  },
+  {
+    slug: "chocolate-chip-cookies",
+    name: "Chocolate Chip Cookies",
+    category: "Cookies",
+    description: "Thick, soft in the middle, and full of chocolate.",
+    priceRange: "$3–$20",
+    imageSlot: "menu-chocolate-chip-cookies",
+    featured: true,
+  },
+  {
+    slug: "banana-nut-muffins",
+    name: "Banana Nut Muffins",
+    category: "Muffins",
+    description: "Ripe banana and toasted pecans, baked in tulip liners.",
+    priceRange: "$4–$14",
+    imageSlot: "menu-banana-nut-muffins",
+    featured: true,
+  },
+  {
+    slug: "oatmeal-raisin-cookies",
+    name: "Oatmeal Raisin Cookies",
+    category: "Cookies",
+    description: "Chewy oats and plump raisins, crisp around the edges.",
+    priceRange: "$3–$20",
+    imageSlot: "menu-oatmeal-raisin-cookies",
+    featured: true,
+  },
+  {
+    slug: "sourdough-granola",
+    name: "Sourdough Granola",
+    category: "Granola",
+    description: "Slow-baked clusters, good over yogurt or straight from the jar.",
+    priceRange: "$10",
+    imageSlot: "menu-sourdough-granola",
+  },
+
+  // --- PLACEHOLDER items below: replace with real products before launch ---
   {
     slug: "country-sourdough",
     name: "Country Sourdough",
@@ -47,26 +107,6 @@ export const menuItems: MenuItem[] = [
       "Our everyday loaf — long-fermented, open crumb, deeply scored crust.",
     priceRange: "$12",
     imageSlot: "menu-country-sourdough",
-    featured: true,
-  },
-  {
-    slug: "jalapeno-cheddar-loaf",
-    name: "Jalapeño Cheddar Sourdough",
-    category: "Loaves",
-    description: "Sharp cheddar and fresh jalapeño folded through our base dough.",
-    priceRange: "$14",
-    imageSlot: "menu-jalapeno-cheddar",
-    almostGone: true,
-    featured: true,
-  },
-  {
-    slug: "cinnamon-raisin-loaf",
-    name: "Cinnamon Raisin Sourdough",
-    category: "Loaves",
-    description: "Swirled with cinnamon and plump raisins, naturally sweet.",
-    priceRange: "$14",
-    imageSlot: "menu-cinnamon-raisin",
-    featured: true,
   },
   {
     slug: "everything-bagels",
@@ -75,7 +115,6 @@ export const menuItems: MenuItem[] = [
     description: "Hand-rolled, boiled, and finished with a heavy everything crust.",
     priceRange: "$4 each · $22/half dozen",
     imageSlot: "menu-everything-bagels",
-    featured: true,
   },
   {
     slug: "plain-bagels",
@@ -84,39 +123,6 @@ export const menuItems: MenuItem[] = [
     description: "Chewy, slightly tangy, the way a bagel should be.",
     priceRange: "$4 each · $22/half dozen",
     imageSlot: "menu-plain-bagels",
-  },
-  {
-    slug: "chocolate-chip-cookies",
-    name: "Sourdough Chocolate Chip Cookies",
-    category: "Cookies",
-    description: "Discard-fermented for depth, finished with flaky salt.",
-    priceRange: "$3 each · $16/half dozen",
-    imageSlot: "menu-chocolate-chip-cookies",
-  },
-  {
-    slug: "snickerdoodles",
-    name: "Sourdough Snickerdoodles",
-    category: "Cookies",
-    description: "Soft-centered, rolled in cinnamon sugar.",
-    priceRange: "$3 each · $16/half dozen",
-    imageSlot: "menu-snickerdoodles",
-    soldOut: true,
-  },
-  {
-    slug: "blueberry-muffins",
-    name: "Sourdough Blueberry Muffins",
-    category: "Muffins",
-    description: "Tender crumb, loaded with blueberries, streusel top.",
-    priceRange: "$4 each · $20/half dozen",
-    imageSlot: "menu-blueberry-muffins",
-  },
-  {
-    slug: "maple-pecan-granola",
-    name: "Maple Pecan Granola",
-    category: "Granola",
-    description: "Slow-baked clusters, toasted pecans, real maple.",
-    priceRange: "$10/bag",
-    imageSlot: "menu-maple-pecan-granola",
   },
   {
     slug: "harvest-fig-loaf",
