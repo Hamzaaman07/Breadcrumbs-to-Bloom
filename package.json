@@ -7,11 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "prebuild": "node scripts/generate-image-manifest.mjs",
-    "predev": "node scripts/generate-image-manifest.mjs",
     "cf:build": "node scripts/generate-image-manifest.mjs && opennextjs-cloudflare build",
-    "cf:preview": "npm run cf:build && wrangler dev",
-    "cf:deploy": "npm run cf:build && wrangler deploy"
+    "cf:preview": "node scripts/generate-image-manifest.mjs && opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "cf:deploy": "node scripts/generate-image-manifest.mjs && opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "cf:typegen": "wrangler types --env-interface CloudflareEnv env.d.ts",
+    "prebuild": "node scripts/generate-image-manifest.mjs",
+    "predev": "node scripts/generate-image-manifest.mjs"
   },
   "dependencies": {
     "@react-three/drei": "^10.0.4",

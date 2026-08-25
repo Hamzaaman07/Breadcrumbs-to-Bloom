@@ -6,14 +6,13 @@
   // would deploy to a different Worker on a different *.workers.dev URL.
   "name": "breadcrumbs-to-bloom",
   "main": ".open-next/worker.js",
-  // nodejs_compat is required by the OpenNext adapter — the Next.js server
-  // it wraps uses Node built-ins. compatibility_date must be >= 2024-09-23
-  // for those polyfills to be available.
-  "compatibility_date": "2025-03-25",
-  "compatibility_flags": ["nodejs_compat"],
+  // nodejs_compat is required by the OpenNext adapter — the Next.js server it
+  // wraps uses Node built-ins.
+  "compatibility_date": "2026-08-24",
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
   "assets": {
-    "directory": ".open-next/assets",
-    "binding": "ASSETS"
+    "binding": "ASSETS",
+    "directory": ".open-next/assets"
   },
   "observability": {
     "enabled": true
