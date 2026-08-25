@@ -1,6 +1,10 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "breadcrumbs-to-blooms",
+  // Must match the existing Cloudflare Worker exactly. It is derived from the
+  // GitHub repo name (Breadcrumbs-to-Bloom), not from the brand name
+  // "Breadcrumbs to Blooms" — note the missing trailing "s". Changing this
+  // would deploy to a different Worker on a different *.workers.dev URL.
+  "name": "breadcrumbs-to-bloom",
   "main": ".open-next/worker.js",
   // nodejs_compat is required by the OpenNext adapter — the Next.js server
   // it wraps uses Node built-ins. compatibility_date must be >= 2024-09-23
